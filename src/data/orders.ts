@@ -1,0 +1,98 @@
+import type { Order } from "@/types/models";
+
+export const initialOrders: Order[] = [
+  {
+    id: "BRK-824163",
+    createdAt: "2026-10-28T18:24:00.000Z",
+    status: "Preparing",
+    eta: "Arriving in 20–30 min",
+    items: [
+      {
+        productId: "adana-kebab",
+        name: "Adana Kebab Plate",
+        image: require("@/assets/images/burak/kebab-plate.jpg"),
+        quantity: 1,
+        unitPrice: 25.95,
+        extras: ["House yogurt"],
+      },
+      {
+        productId: "pistachio-baklava",
+        name: "Pistachio Baklava",
+        image: require("@/assets/images/burak/baklava.jpg"),
+        quantity: 1,
+        unitPrice: 9.5,
+        extras: [],
+      },
+    ],
+    subtotal: 35.45,
+    deliveryFee: 3.5,
+    total: 38.95,
+    paymentMethod: "Cash on delivery",
+    customer: {
+      name: "Leyla Demir",
+      phone: "+1 555 014 2851",
+      address: "150 Hudson Street, New York, NY",
+      instructions: "Please leave at the front desk.",
+    },
+  },
+  {
+    id: "BRK-819507",
+    createdAt: "2026-10-21T12:10:00.000Z",
+    status: "Completed",
+    eta: "Delivered",
+    items: [
+      {
+        productId: "salmon-linguine",
+        name: "Salmon Linguine",
+        image: require("@/assets/images/burak/salmon-pasta.jpg"),
+        quantity: 2,
+        unitPrice: 22.5,
+        extras: [],
+      },
+    ],
+    subtotal: 45,
+    deliveryFee: 0,
+    total: 45,
+    paymentMethod: "Card on delivery",
+    customer: {
+      name: "Leyla Demir",
+      phone: "+1 555 014 2851",
+      address: "150 Hudson Street, New York, NY",
+      instructions: "",
+    },
+  },
+  {
+    id: "BRK-806241",
+    createdAt: "2026-10-12T19:42:00.000Z",
+    status: "Completed",
+    eta: "Delivered",
+    items: [
+      {
+        productId: "kebuli-rice",
+        name: "Kebuli Rice Bowl",
+        image: require("@/assets/images/burak/rice-platter.jpg"),
+        quantity: 1,
+        unitPrice: 18.5,
+        extras: ["Grilled chicken"],
+      },
+      {
+        productId: "garden-soup",
+        name: "Garden Herb Soup",
+        image: require("@/assets/images/burak/soup-bowl.jpg"),
+        quantity: 1,
+        unitPrice: 8.5,
+        extras: [],
+      },
+    ],
+    subtotal: 27,
+    deliveryFee: 3.5,
+    total: 30.5,
+    paymentMethod: "Cash on delivery",
+    customer: {
+      name: "Leyla Demir",
+      phone: "+1 555 014 2851",
+      address: "150 Hudson Street, New York, NY",
+      instructions: "",
+    },
+  },
+];
