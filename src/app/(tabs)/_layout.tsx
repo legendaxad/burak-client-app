@@ -1,11 +1,11 @@
 import { Tabs } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, type ColorValue } from 'react-native';
 
 import { AppIcon } from '@/components/app-ui';
 import { useAppData } from '@/context/app-context';
 import { colors } from '@/theme/colors';
 
-function TabIcon({ name, color, size, badge }: { name: string; color: string; size: number; badge?: number }) {
+function TabIcon({ name, color, size, badge }: { name: string; color: ColorValue; size: number; badge?: number }) {
   return (
     <View style={styles.iconWrap}>
       <AppIcon name={name} color={color} size={size} />
@@ -25,11 +25,11 @@ export default function TabLayout() {
       tabBarItemStyle: styles.item,
       tabBarStyle: styles.tabBar,
     }}>
-      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ color, size }) => <TabIcon name="home" color={color} size={size} /> }} />
-      <Tabs.Screen name="menu" options={{ title: 'Menu', tabBarIcon: ({ color, size }) => <TabIcon name="menu" color={color} size={size} /> }} />
-      <Tabs.Screen name="cart" options={{ title: 'Cart', tabBarIcon: ({ color, size }) => <TabIcon name="bag" color={color} size={size} badge={cartCount} /> }} />
-      <Tabs.Screen name="orders" options={{ title: 'My Orders', tabBarIcon: ({ color, size }) => <TabIcon name="orders" color={color} size={size} /> }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: ({ color, size }) => <TabIcon name="profile" color={color} size={size} /> }} />
+      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ color, size }) => <TabIcon name="home" color={color ?? colors.muted} size={size} /> }} />
+      <Tabs.Screen name="menu" options={{ title: 'Menu', tabBarIcon: ({ color, size }) => <TabIcon name="menu" color={color ?? colors.muted} size={size} /> }} />
+      <Tabs.Screen name="cart" options={{ title: 'Cart', tabBarIcon: ({ color, size }) => <TabIcon name="bag" color={color ?? colors.muted} size={size} badge={cartCount} /> }} />
+      <Tabs.Screen name="orders" options={{ title: 'My Orders', tabBarIcon: ({ color, size }) => <TabIcon name="orders" color={color ?? colors.muted} size={size} /> }} />
+      <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: ({ color, size }) => <TabIcon name="profile" color={color ?? colors.muted} size={size} /> }} />
     </Tabs>
   );
 }

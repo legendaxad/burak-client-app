@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppIcon, AppScreen, PageHeader, Surface } from '@/components/app-ui';
-import { colors, radius, spacing } from '@/theme/colors';
+import { colors, spacing } from '@/theme/colors';
 
 const faqs = [
   { id: 'delivery', question: 'How long does delivery take?', answer: 'Most orders arrive in 25–35 minutes. Larger orders and busy dinner hours may take a little longer.' },

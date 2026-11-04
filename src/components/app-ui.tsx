@@ -1,14 +1,14 @@
 import { SymbolView } from 'expo-symbols';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, useCanGoBack } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type ColorValue, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, radius, spacing } from '@/theme/colors';
 import type { Order, OrderStatus, Product } from '@/types/models';
 
-const iconNames: Record<string, { ios: string; android: string; web: string }> = {
+const iconNames = {
   home: { ios: 'house.fill', android: 'home', web: 'home' },
   menu: { ios: 'fork.knife', android: 'restaurant_menu', web: 'restaurant_menu' },
   bag: { ios: 'bag.fill', android: 'shopping_bag', web: 'shopping_bag' },
@@ -31,10 +31,10 @@ const iconNames: Record<string, { ios: string; android: string; web: string }> =
   settings: { ios: 'gearshape', android: 'settings', web: 'settings' },
   info: { ios: 'info.circle', android: 'info', web: 'info' },
   truck: { ios: 'car', android: 'delivery_dining', web: 'delivery_dining' },
-};
+} as const;
 
-export function AppIcon({ name, size = 20, color = colors.text }: { name: string; size?: number; color?: string }) {
-  return <SymbolView name={iconNames[name] ?? iconNames.info} size={size} tintColor={color} />;
+export function AppIcon({ name, size = 20, color = colors.text }: { name: string; size?: number; color?: ColorValue }) {
+  return <SymbolView name={iconNames[name as keyof typeof iconNames] ?? iconNames.info} size={size} tintColor={color} />;
 }
 
 export function AppScreen({ children, contentStyle, scroll = true }: { children: ReactNode; contentStyle?: StyleProp<ViewStyle>; scroll?: boolean }) {
@@ -59,10 +59,11 @@ export function BrandMark({ light = false }: { light?: boolean }) {
 }
 
 export function PageHeader({ title, subtitle, back = false, action }: { title: string; subtitle?: string; back?: boolean; action?: ReactNode }) {
+  const canGoBack = useCanGoBack();
   return (
     <View style={styles.pageHeader}>
       <View style={styles.pageHeaderRow}>
-        {back ? <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} hitSlop={8} style={styles.backButton}><AppIcon name="arrow" size={20} /></Pressable> : <BrandMark />}
+        {back ? <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => canGoBack ? router.back() : router.replace('/')} hitSlop={8} style={styles.backButton}><AppIcon name="arrow" size={20} /></Pressable> : <BrandMark />}
         {action}
       </View>
       <Text style={styles.pageTitle}>{title}</Text>
@@ -196,6 +197,10 @@ export function EmptyState({ icon = 'bag', title, message, action }: { icon?: st
   );
 }
 
+export function LoadingPanel({ message }: { message: string }) {
+  return <View style={styles.loadingPanel}><ActivityIndicator color={colors.goldDeep} /><Text style={styles.loadingText}>{message}</Text></View>;
+}
+
 export function Field({ label, value, onChangeText, placeholder, keyboardType, multiline = false, secureTextEntry = false }: { label: string; value: string; onChangeText: (value: string) => void; placeholder?: string; keyboardType?: 'default' | 'email-address' | 'phone-pad'; multiline?: boolean; secureTextEntry?: boolean }) {
   return (
     <View style={styles.fieldWrap}>
@@ -246,7 +251,7 @@ const styles = StyleSheet.create({
   productImageWrap: { height: 142, overflow: 'hidden', backgroundColor: '#E6E0D6' },
   productImageWrapHorizontal: { height: 150 },
   productImage: { width: '100%', height: '100%' },
-  imagePlaceholder: { ...StyleSheet.absoluteFillObject, backgroundColor: '#E6E0D6' },
+  imagePlaceholder: { ...StyleSheet.absoluteFill, backgroundColor: '#E6E0D6' },
   bestSellerBadge: { position: 'absolute', left: 10, top: 10, paddingHorizontal: 8, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: 'rgba(23,22,21,0.86)' },
   bestSellerText: { color: colors.gold, fontSize: 8, letterSpacing: 0.5, fontWeight: '800' },
   productCardBody: { padding: 12, gap: 5 },
@@ -293,6 +298,8 @@ const styles = StyleSheet.create({
   emptyIcon: { width: 54, height: 54, borderRadius: 27, backgroundColor: '#F5EBD9', alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { color: colors.text, fontSize: 17, fontWeight: '800', textAlign: 'center' },
   emptyMessage: { color: colors.muted, fontSize: 13, lineHeight: 19, textAlign: 'center', maxWidth: 280 },
+  loadingPanel: { minHeight: 180, alignItems: 'center', justifyContent: 'center', gap: 10 },
+  loadingText: { color: colors.muted, fontSize: 11 },
   fieldWrap: { gap: 7 },
   fieldLabel: { color: colors.text, fontSize: 12, fontWeight: '700' },
   textField: { minHeight: 48, paddingHorizontal: 14, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, color: colors.text, fontSize: 14 },

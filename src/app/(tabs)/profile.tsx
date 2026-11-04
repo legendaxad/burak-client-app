@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AppIcon, AppScreen, PageHeader, SectionTitle, Surface } from '@/components/app-ui';
+import { AppIcon, AppScreen, LoadingPanel, PageHeader, SectionTitle, Surface } from '@/components/app-ui';
 import { useAppData } from '@/context/app-context';
 import { colors, radius, spacing } from '@/theme/colors';
 
@@ -16,7 +16,7 @@ function ProfileLink({ icon, label, detail, onPress }: { icon: string; label: st
 }
 
 export default function ProfileScreen() {
-  const { customer, orders } = useAppData();
+  const { ready, customer, orders } = useAppData();
   const initials = customer.name.trim().split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'G';
   const activeCount = orders.filter((order) => ['Pending', 'Preparing', 'Ready'].includes(order.status)).length;
 
@@ -24,6 +24,7 @@ export default function ProfileScreen() {
     <AppScreen contentStyle={styles.screen}>
       <PageHeader title="Your profile" subtitle="All your BURAK details, in one place." />
       <View style={styles.content}>
+        {!ready ? <LoadingPanel message="Loading your profile…" /> : <>
         <Surface style={styles.profileCard}>
           <View style={styles.profileTop}>
             <View style={styles.avatar}><Text style={styles.avatarText}>{initials}</Text></View>
@@ -49,6 +50,7 @@ export default function ProfileScreen() {
           <ProfileLink icon="info" label="About BURAK" detail="Our kitchen and story" onPress={() => router.navigate('/about')} />
         </View>
         <Text style={styles.version}>BURAK CUSTOMER · 1.0.0</Text>
+        </>}
       </View>
     </AppScreen>
   );

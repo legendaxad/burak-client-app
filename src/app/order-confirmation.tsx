@@ -1,14 +1,16 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { AppIcon, AppScreen, PageHeader, PrimaryButton, Surface } from '@/components/app-ui';
+import { AppIcon, AppScreen, LoadingPanel, PageHeader, PrimaryButton, Surface } from '@/components/app-ui';
 import { useAppData } from '@/context/app-context';
 import { colors, radius, spacing } from '@/theme/colors';
 
 export default function OrderConfirmationScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const { orders } = useAppData();
+  const { ready, orders } = useAppData();
   const order = orders.find((item) => item.id === id) ?? orders[0];
+
+  if (!ready) return <AppScreen><PageHeader title="Order received" subtitle="Checking your order…" /><LoadingPanel message="Preparing your confirmation…" /></AppScreen>;
 
   return (
     <AppScreen contentStyle={styles.screen}>

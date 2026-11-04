@@ -1,21 +1,16 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { AppScreen, ChoiceChip, PageHeader, ProductRow, SearchField } from '@/components/app-ui';
+import { AppScreen, ChoiceChip, LoadingPanel, PageHeader, ProductRow, SearchField } from '@/components/app-ui';
 import { useAppData } from '@/context/app-context';
 import { colors, spacing } from '@/theme/colors';
 
 export default function MenuScreen() {
   const params = useLocalSearchParams<{ q?: string; category?: string }>();
-  const { products, categories, addToCart } = useAppData();
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('All');
-
-  useEffect(() => {
-    if (params.q) setSearch(params.q);
-    if (params.category) setCategory(params.category);
-  }, [params.category, params.q]);
+  const { ready, products, categories, addToCart } = useAppData();
+  const search = typeof params.q === 'string' ? params.q : '';
+  const category = typeof params.category === 'string' ? params.category : 'All';
 
   const visibleProducts = useMemo(() => products.filter((product) => {
     const matchesCategory = category === 'All' || product.category === category;
@@ -24,14 +19,16 @@ export default function MenuScreen() {
     return matchesCategory && matchesSearch;
   }), [products, category, search]);
 
+  if (!ready) return <AppScreen><PageHeader title="The menu" subtitle="Fresh favorites are on their way." /><LoadingPanel message="Setting the table…" /></AppScreen>;
+
   return (
     <AppScreen contentStyle={styles.screen}>
       <PageHeader title="The menu" subtitle="A few favorites, made fresh for your table." />
       <View style={styles.content}>
-        <SearchField value={search} onChangeText={setSearch} />
+        <SearchField value={search} onChangeText={(q) => router.setParams({ q: q || undefined })} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
-          <ChoiceChip label="All dishes" selected={category === 'All'} onPress={() => setCategory('All')} />
-          {categories.map((item) => <ChoiceChip key={item.id} label={item.name} icon={item.icon} selected={category === item.id} onPress={() => setCategory(item.id)} />)}
+          <ChoiceChip label="All dishes" selected={category === 'All'} onPress={() => router.setParams({ category: undefined })} />
+          {categories.map((item) => <ChoiceChip key={item.id} label={item.name} icon={item.icon} selected={category === item.id} onPress={() => router.setParams({ category: item.id })} />)}
         </ScrollView>
         <View style={styles.resultsHeader}><Text style={styles.resultsTitle}>{category === 'All' ? 'Everything we love' : category}</Text><Text style={styles.resultsCount}>{visibleProducts.length} dishes</Text></View>
         {visibleProducts.length ? visibleProducts.map((product) => (

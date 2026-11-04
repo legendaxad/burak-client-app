@@ -1,28 +1,25 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { AppScreen, BrandMark, Field, PageHeader, PrimaryButton, Surface } from '@/components/app-ui';
 import { useAppData } from '@/context/app-context';
-import { colors, radius, spacing } from '@/theme/colors';
+import { colors, spacing } from '@/theme/colors';
 
 export default function MockProfileSetupScreen() {
-  const { ready, customer, updateCustomer } = useAppData();
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
-  const [instructions, setInstructions] = useState('');
-  const [error, setError] = useState('');
+  const { ready } = useAppData();
+  if (!ready) return <AppScreen><PageHeader title="Your details" subtitle="Loading your local profile…" back /><View style={styles.loading}><ActivityIndicator color={colors.goldDeep} /></View></AppScreen>;
+  return <ProfileSetupForm />;
+}
 
-  useEffect(() => {
-    if (!ready) return;
-    setName(customer.name);
-    setPhone(customer.phone);
-    setEmail(customer.email);
-    setAddress(customer.address);
-    setInstructions(customer.instructions);
-  }, [customer, ready]);
+function ProfileSetupForm() {
+  const { customer, updateCustomer } = useAppData();
+  const [name, setName] = useState(customer.name);
+  const [phone, setPhone] = useState(customer.phone);
+  const [email, setEmail] = useState(customer.email);
+  const [address, setAddress] = useState(customer.address);
+  const [instructions, setInstructions] = useState(customer.instructions);
+  const [error, setError] = useState('');
 
   const saveProfile = async () => {
     if (!name.trim() || !phone.trim() || !address.trim()) {
@@ -59,6 +56,7 @@ export default function MockProfileSetupScreen() {
 
 const styles = StyleSheet.create({
   screen: { paddingBottom: 32 },
+  loading: { padding: 36, alignItems: 'center' },
   content: { paddingHorizontal: spacing.xl, gap: 11 },
   formCard: { gap: 13 },
   intro: { gap: 10, marginBottom: 2 },

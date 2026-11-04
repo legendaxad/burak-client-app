@@ -1,5 +1,3 @@
-import '@/global.css';
-
 import { Stack } from 'expo-router';
 
 import { AppProvider } from '@/context/app-context';

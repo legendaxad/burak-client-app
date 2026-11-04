@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AppIcon, AppScreen, EmptyState, PageHeader, PrimaryButton, QuantityStepper, SectionTitle, Surface } from '@/components/app-ui';
+import { AppIcon, AppScreen, EmptyState, LoadingPanel, PageHeader, PrimaryButton, QuantityStepper, SectionTitle, Surface } from '@/components/app-ui';
 import { useAppData } from '@/context/app-context';
 import { colors, radius, spacing } from '@/theme/colors';
 import type { CartLine } from '@/types/models';
@@ -27,14 +27,14 @@ function CartItem({ line, onQuantityChange, onRemove }: { line: CartLine; onQuan
 }
 
 export default function CartScreen() {
-  const { cart, setCartQuantity, removeFromCart, subtotal, deliveryFee, total, restaurant } = useAppData();
+  const { ready, cart, setCartQuantity, removeFromCart, subtotal, deliveryFee, total, restaurant } = useAppData();
   const freeDeliveryRemaining = Math.max(0, restaurant.freeDeliveryMinimum - subtotal);
 
   return (
     <AppScreen contentStyle={styles.screen}>
       <PageHeader title="Your cart" subtitle={cart.length ? 'A very good meal is on its way.' : 'Something delicious is just a few taps away.'} />
       <View style={styles.content}>
-        {!cart.length ? (
+        {!ready ? <LoadingPanel message="Restoring your cart…" /> : !cart.length ? (
           <EmptyState icon="bag" title="Your cart is taking a little break" message="Explore the menu and add a favorite to get started." action={<PrimaryButton title="Explore the menu" onPress={() => router.navigate('/menu')} icon="menu" />} />
         ) : (
           <>

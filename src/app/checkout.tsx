@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppIcon, AppScreen, EmptyState, Field, PageHeader, PrimaryButton, SectionTitle, Surface } from '@/components/app-ui';
 import { useAppData } from '@/context/app-context';
@@ -13,22 +13,20 @@ const paymentMethods: { value: PaymentMethod; title: string; description: string
 ];
 
 export default function CheckoutScreen() {
-  const { ready, cart, customer, subtotal, deliveryFee, total, placeOrder } = useAppData();
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [instructions, setInstructions] = useState('');
+  const { ready } = useAppData();
+  if (!ready) return <AppScreen><PageHeader title="Checkout" subtitle="Loading your saved details…" back /><View style={styles.loading}><ActivityIndicator color={colors.goldDeep} /></View></AppScreen>;
+  return <CheckoutForm />;
+}
+
+function CheckoutForm() {
+  const { cart, customer, subtotal, deliveryFee, total, placeOrder } = useAppData();
+  const [name, setName] = useState(customer.name);
+  const [phone, setPhone] = useState(customer.phone);
+  const [address, setAddress] = useState(customer.address);
+  const [instructions, setInstructions] = useState(customer.instructions);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Cash on delivery');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!ready) return;
-    setName(customer.name);
-    setPhone(customer.phone);
-    setAddress(customer.address);
-    setInstructions(customer.instructions);
-  }, [customer, ready]);
 
   const handleConfirm = async () => {
     if (!name.trim() || !phone.trim() || !address.trim()) {
@@ -96,6 +94,7 @@ export default function CheckoutScreen() {
 const styles = StyleSheet.create({
   screen: { paddingBottom: 32 },
   content: { paddingHorizontal: spacing.xl, gap: 15 },
+  loading: { padding: 36, alignItems: 'center' },
   sectionCard: { gap: 13 },
   sectionTitle: { color: colors.text, fontSize: 16, fontWeight: '800' },
   sectionSubtitle: { color: colors.muted, fontSize: 11, marginTop: 3 },

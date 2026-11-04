@@ -25,7 +25,7 @@ export const products: Product[] = [
     description: 'Tender steak seared over charcoal and finished with roasted garlic butter.',
     category: 'Grill',
     price: 29.5,
-    image: require('@/assets/images/burak/fr-kebab.jpg'),
+    image: require('@/assets/images/burak/steak.jpg'),
     availability: 'Available',
     rating: 4.8,
     prepMinutes: 22,

@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { AppIcon, AppScreen, EmptyState, PageHeader, PrimaryButton, StatusBadge, Surface } from '@/components/app-ui';
+import { AppIcon, AppScreen, EmptyState, LoadingPanel, PageHeader, PrimaryButton, StatusBadge, Surface } from '@/components/app-ui';
 import { useAppData } from '@/context/app-context';
 import { colors, radius, spacing } from '@/theme/colors';
 import type { OrderStatus } from '@/types/models';
@@ -11,7 +11,7 @@ const milestones: OrderStatus[] = ['Pending', 'Preparing', 'Ready', 'Completed']
 
 export default function OrderDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { orders, products, addToCart } = useAppData();
+  const { ready, orders, products, addToCart } = useAppData();
   const order = orders.find((item) => item.id === id);
 
   const handleReorder = () => {
@@ -24,6 +24,7 @@ export default function OrderDetailsScreen() {
     router.push('/cart');
   };
 
+  if (!ready) return <AppScreen><PageHeader title="Order details" back /><LoadingPanel message="Loading order details…" /></AppScreen>;
   if (!order) return <AppScreen><PageHeader title="Order details" back /><View style={styles.missing}><EmptyState icon="receipt" title="We couldn’t find that order" message="Your order may have been removed from this demo device." /></View></AppScreen>;
 
   const currentStep = order.status === 'Cancelled' ? -1 : milestones.indexOf(order.status);

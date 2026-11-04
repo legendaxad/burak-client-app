@@ -1,5 +1,3 @@
-import type { ImageSourcePropType } from 'react-native';
-
 export type ProductCategory = 'Grill' | 'Mains' | 'Soup' | 'Pasta' | 'Rice' | 'Dessert';
 export type OrderStatus = 'Pending' | 'Preparing' | 'Ready' | 'Completed' | 'Cancelled';
 export type PaymentMethod = 'Cash on delivery' | 'Card on delivery';
@@ -16,7 +14,7 @@ export interface Product {
   description: string;
   category: ProductCategory;
   price: number;
-  image: ImageSourcePropType;
+  image: number;
   availability: 'Available' | 'Sold out';
   rating: number;
   prepMinutes: number;
@@ -44,7 +42,7 @@ export interface Customer {
 export interface OrderItem {
   productId: string;
   name: string;
-  image: ImageSourcePropType;
+  image: number;
   quantity: number;
   unitPrice: number;
   extras: string[];

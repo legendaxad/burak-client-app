@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { AppIcon, AppScreen, BrandMark, ProductCard, SearchField, SectionTitle } from '@/components/app-ui';
+import { AppIcon, AppScreen, BrandMark, LoadingPanel, PageHeader, ProductCard, SearchField, SectionTitle } from '@/components/app-ui';
 import { useAppData } from '@/context/app-context';
 import { promotions } from '@/data/promotions';
 import { colors, radius, spacing } from '@/theme/colors';
@@ -11,7 +11,7 @@ import { colors, radius, spacing } from '@/theme/colors';
 const heroImage = require('@/assets/images/burak/hero.png');
 
 export default function HomeScreen() {
-  const { products, categories, customer, restaurant, addToCart } = useAppData();
+  const { ready, products, categories, customer, restaurant, addToCart } = useAppData();
   const [search, setSearch] = useState('');
   const popular = useMemo(() => products.filter((product) => product.isPopular), [products]);
   const recommended = useMemo(() => products.filter((product) => product.isRecommended), [products]);
@@ -19,6 +19,8 @@ export default function HomeScreen() {
 
   const openMenu = (params?: { q?: string; category?: string }) => router.push({ pathname: '/menu', params: params ?? {} });
   const openProduct = (id: string) => router.push({ pathname: '/product/[id]', params: { id } });
+
+  if (!ready) return <AppScreen><PageHeader title="A seat at the table" subtitle="Getting your BURAK favorites ready." /><LoadingPanel message="Setting your table…" /></AppScreen>;
 
   return (
     <AppScreen contentStyle={styles.screen}>
@@ -104,8 +106,8 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: { paddingBottom: 36 },
   hero: { minHeight: 300, overflow: 'hidden', backgroundColor: colors.ink },
-  heroImage: { ...StyleSheet.absoluteFillObject, opacity: 0.8 },
-  heroShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,14,13,0.56)' },
+  heroImage: { ...StyleSheet.absoluteFill, opacity: 0.8 },
+  heroShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(15,14,13,0.56)' },
   heroContent: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: 25, minHeight: 300, justifyContent: 'space-between' },
   heroTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   openPill: { minHeight: 27, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 9, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.14)' },
@@ -135,8 +137,8 @@ const styles = StyleSheet.create({
   categoryEmoji: { fontSize: 22 },
   categoryName: { color: colors.text, fontSize: 10, fontWeight: '700' },
   promoCard: { height: 177, overflow: 'hidden', borderRadius: radius.xl, backgroundColor: colors.ink },
-  promoImage: { ...StyleSheet.absoluteFillObject, opacity: 0.66 },
-  promoShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(16,15,14,0.52)' },
+  promoImage: { ...StyleSheet.absoluteFill, opacity: 0.66 },
+  promoShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(16,15,14,0.52)' },
   promoCopy: { flex: 1, padding: 18, paddingRight: 90, justifyContent: 'center', gap: 5 },
   promoEyebrow: { color: colors.gold, fontSize: 8, fontWeight: '800', letterSpacing: 1.2 },
   promoTitle: { color: colors.white, fontSize: 20, fontWeight: '800' },
