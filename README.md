@@ -1,36 +1,39 @@
 # BURAK Customer
 
-A mobile first BURAK restaurant ordering app built with Expo SDK 58, React Native, TypeScript, and Expo Router.
+The customer mobile app for the BURAK restaurant, built with Expo SDK 58, React Native and TypeScript. It talks to the existing BURAK backend (Express + MongoDB); it has no mock data.
 
-## Run locally
+**Status:** Phase 1 (foundation), Phase 2 (authentication) and Phase 3 (products) are complete. Cart, checkout, orders and profile editing are Phases 4–6.
 
-```bash
-npm install
-npm run start
-```
+## Getting started
 
-Use the Expo CLI shortcuts to open Android, iOS, or web. Run `npm run lint` and `./node_modules/.bin/tsc --noEmit` for the project checks.
+1. Start the BURAK backend (separate repository) on port 3003.
+2. Configure the API URL:
+   ```bash
+   cp .env.example .env.local   # then set EXPO_PUBLIC_API_URL for your target
+   ```
+   Use `http://localhost:3003` for the iOS simulator, `http://10.0.2.2:3003` for the Android emulator, or your computer's LAN IP for a physical device.
+3. Install and run:
+   ```bash
+   npm install
+   npx expo start
+   ```
+   `expo-secure-store` is included in Expo Go. A development build (`npx expo run:android` / `run:ios`) also works.
 
-## What is included
+## Scripts
 
-- Home, menu, product details, cart, checkout, order confirmation, order history, order details, profile, settings, help, and about screens.
-- Local mock products, categories, restaurant details, and order history under `src/data/`.
-- Async data interfaces in `src/services/mockApi.ts`, ready to be replaced by future API calls.
-- Cart, profile, and mock order persistence through AsyncStorage.
-- Cash on delivery and a mock card-on-delivery choice; no real payments or backend requests.
-- Design tokens in `src/theme/colors.ts`, based on BURAK’s dark, cream, and warm-gold Admin app branding.
+| Command | What it does |
+|---|---|
+| `npm run typecheck` | `tsc --noEmit` (strict) |
+| `npm run lint` | `expo lint` |
+| `npm test` | Unit tests |
+| `EXPO_PUBLIC_API_URL=http://localhost:3003 npm run test:integration` | Tests against a live backend (creates a `qa_mobile_*` member) |
 
-## Project layout
+## Documentation
 
-- `src/app/` contains Expo Router screens and layouts.
-- `src/components/` contains shared mobile UI.
-- `src/context/` contains the cart, profile, and order state.
-- `src/data/` contains mock fixtures.
-- `src/services/` contains the mock data access layer.
-- `assets/images/burak/` contains the bundled BURAK and menu imagery.
-
-The five primary navigation tabs are Home, Menu, Cart, My Orders, and Profile. Product detail, checkout, confirmation, order detail, profile setup, settings, help, and about are secondary stack routes.
+- [ARCHITECTURE.md](./ARCHITECTURE.md): structure, auth flow, state, conventions
+- [BACKEND_API_MAPPING.md](./BACKEND_API_MAPPING.md): every customer endpoint, contracts, known backend defects
+- [PHASE_0_REPORT.md](./PHASE_0_REPORT.md): investigation and roadmap
 
 ## Image credits
 
-Menu photography is from Unsplash and is listed in [CREDITS.md](./assets/images/burak/CREDITS.md). The Admin app’s original project directory is not modified by this Customer app.
+See [assets/images/burak/CREDITS.md](./assets/images/burak/CREDITS.md). Product photos come from the backend only.

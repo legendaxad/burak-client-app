@@ -1,54 +1,15 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 
-import { AppScreen, ChoiceChip, LoadingPanel, PageHeader, ProductRow, SearchField } from '@/components/app-ui';
-import { useAppData } from '@/context/app-context';
-import { colors, spacing } from '@/theme/colors';
+import { findCollectionFilter, SORT_OPTIONS } from '@/features/products/constants/collections';
+import { MenuScreen } from '@/features/products/screens/menu-screen';
 
-export default function MenuScreen() {
-  const params = useLocalSearchParams<{ q?: string; category?: string }>();
-  const { ready, products, categories, addToCart } = useAppData();
-  const search = typeof params.q === 'string' ? params.q : '';
-  const category = typeof params.category === 'string' ? params.category : 'All';
-
-  const visibleProducts = useMemo(() => products.filter((product) => {
-    const matchesCategory = category === 'All' || product.category === category;
-    const query = search.trim().toLowerCase();
-    const matchesSearch = !query || `${product.name} ${product.description} ${product.category}`.toLowerCase().includes(query);
-    return matchesCategory && matchesSearch;
-  }), [products, category, search]);
-
-  if (!ready) return <AppScreen><PageHeader title="The menu" subtitle="Fresh favorites are on their way." /><LoadingPanel message="Setting the table…" /></AppScreen>;
-
+export default function MenuRoute() {
+  const params = useLocalSearchParams<{ collection?: string; sort?: string; focus?: string }>();
+  const collection = findCollectionFilter(params.collection)?.key;
+  const sort = SORT_OPTIONS.find((option) => option.key === params.sort)?.key;
+  // Remount when navigated to with new params (e.g. a category chip on Home), so the filters reset.
+  const key = `${collection ?? 'all'}-${sort ?? 'default'}-${params.focus ?? ''}`;
   return (
-    <AppScreen contentStyle={styles.screen}>
-      <PageHeader title="The menu" subtitle="A few favorites, made fresh for your table." />
-      <View style={styles.content}>
-        <SearchField value={search} onChangeText={(q) => router.setParams({ q: q || undefined })} />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
-          <ChoiceChip label="All dishes" selected={category === 'All'} onPress={() => router.setParams({ category: undefined })} />
-          {categories.map((item) => <ChoiceChip key={item.id} label={item.name} icon={item.icon} selected={category === item.id} onPress={() => router.setParams({ category: item.id })} />)}
-        </ScrollView>
-        <View style={styles.resultsHeader}><Text style={styles.resultsTitle}>{category === 'All' ? 'Everything we love' : category}</Text><Text style={styles.resultsCount}>{visibleProducts.length} dishes</Text></View>
-        {visibleProducts.length ? visibleProducts.map((product) => (
-          <ProductRow key={product.id} product={product} onPress={() => router.push({ pathname: '/product/[id]', params: { id: product.id } })} onQuickAdd={() => addToCart(product.id, 1)} />
-        )) : (
-          <View style={styles.noResults}><Text style={styles.noResultsTitle}>No dishes found</Text><Text style={styles.noResultsCopy}>Try a different search or choose another category.</Text></View>
-        )}
-      </View>
-    </AppScreen>
+    <MenuScreen key={key} initialCollection={collection} initialSort={sort} autoFocusSearch={params.focus === 'search'} />
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { paddingBottom: 28 },
-  content: { paddingHorizontal: spacing.xl, gap: 14 },
-  filters: { gap: 8, paddingRight: 16 },
-  resultsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 1 },
-  resultsTitle: { color: colors.text, fontSize: 14, fontWeight: '800' },
-  resultsCount: { color: colors.muted, fontSize: 11 },
-  noResults: { paddingVertical: 36, alignItems: 'center', gap: 7 },
-  noResultsTitle: { color: colors.text, fontSize: 16, fontWeight: '800' },
-  noResultsCopy: { color: colors.muted, textAlign: 'center', fontSize: 12, lineHeight: 18 },
-});
