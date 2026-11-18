@@ -2,6 +2,7 @@ import { registerAuthBridge } from '@/services/api';
 import { queryClient } from '@/services/query/query-client';
 import { tokenStorage } from '@/services/storage/token-storage';
 import { useSessionStore, type SessionEndReason } from '@/store/auth/session-store';
+import { useCartStore } from '@/store/cart/cart-store';
 import type { Member } from '@/types/member';
 import { isJwtExpired } from '@/utils/jwt';
 
@@ -41,6 +42,8 @@ export async function beginSession(token: string, member: Member): Promise<void>
   }
   queryClient.clear();
   await tokenStorage.write(token);
+  // A saved cart belongs to the member who built it; a different account starts empty.
+  useCartStore.getState().bindOwner(member._id);
   queryClient.setQueryData(memberKeys.me(), member);
   store().setAuthenticated(token);
 }
@@ -59,6 +62,9 @@ export function endSession(reason: SessionEndReason): Promise<void> {
     // Flip state first so guards unmount protected screens and no request reuses the token.
     store().setAnonymous(reason);
     queryClient.clear();
+    // Explicit logout empties the cart (shared devices). An expired session keeps it
+    // so the same member finds it again after signing back in.
+    if (reason === 'logout') useCartStore.getState().clear();
     try {
       await tokenStorage.clear();
     } catch (error) {

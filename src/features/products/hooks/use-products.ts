@@ -1,4 +1,11 @@
-import { useInfiniteQuery, useQuery, useQueryClient, type InfiniteData, type QueryClient } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+  type QueryClient,
+} from '@tanstack/react-query';
 
 import { productKeys, type ProductListFilters } from '../query-keys';
 import { productApi } from '../services/product-api';
@@ -48,14 +55,25 @@ export function findCachedProduct(queryClient: QueryClient, id: string): Product
 }
 
 /**
+ * Shared query definition for one product (GET /product/:id). Other features
+ * (cart, checkout) reuse it instead of calling the product API directly.
+ * A 404 means the product was removed or paused by the kitchen.
+ */
+export function productDetailQuery(id: string) {
+  return queryOptions({
+    queryKey: productKeys.detail(id),
+    queryFn: ({ signal }) => productApi.getProductById(id, signal),
+  });
+}
+
+/**
  * Product detail. A product already seen in a list is shown instantly as placeholder
  * data while the real detail request runs (that request records the member's view).
  */
 export function useProduct(id: string) {
   const queryClient = useQueryClient();
-  return useQuery<Product>({
-    queryKey: productKeys.detail(id),
-    queryFn: ({ signal }) => productApi.getProductById(id, signal),
-    placeholderData: () => findCachedProduct(queryClient, id),
+  return useQuery({
+    ...productDetailQuery(id),
+    placeholderData: (): Product | undefined => findCachedProduct(queryClient, id),
   });
 }

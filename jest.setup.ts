@@ -3,6 +3,11 @@
 // Unit tests use a fake host. Integration tests pass the real backend URL via the environment.
 process.env.EXPO_PUBLIC_API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://api.test';
 
+// Official in-memory AsyncStorage mock (cart persistence).
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
+
 // In-memory SecureStore: the native keystore does not exist under Jest.
 jest.mock('expo-secure-store', () => {
   const store = new Map<string, string>();

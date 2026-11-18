@@ -8,6 +8,8 @@ import { AppText } from '@/components/common/app-text';
 import { Icon } from '@/components/common/icon';
 import { Skeleton } from '@/components/common/skeleton';
 import { ErrorState } from '@/components/common/state-message';
+import { AddToCartPanel } from '@/features/cart/components/add-to-cart-panel';
+import { CartButton } from '@/features/cart/components/cart-button';
 import { getErrorMessage, isApiError } from '@/services/api';
 import { makeStyles, useTheme } from '@/theme';
 import { formatPrice } from '@/utils/format-price';
@@ -30,7 +32,11 @@ export function ProductDetailScreen({ id }: { id: string }) {
   return (
     <View style={styles.root}>
       {query.data ? (
-        <ProductDetailContent product={query.data} refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />
+        <>
+          <ProductDetailContent product={query.data} refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />
+          {/* Disabled until fresh detail data replaces cached list data (stock/status). */}
+          <AddToCartPanel product={query.data} isStale={query.isPlaceholderData} />
+        </>
       ) : query.isError ? (
         <SafeAreaView style={styles.centered}>
           <ErrorState
@@ -47,7 +53,10 @@ export function ProductDetailScreen({ id }: { id: string }) {
         <DetailSkeleton />
       )}
       <SafeAreaView edges={['top']} style={styles.backBar} pointerEvents="box-none">
-        <IconButton icon="back" tone="overlay" accessibilityLabel="Go back" onPress={goBack} />
+        <View style={styles.headerRow} pointerEvents="box-none">
+          <IconButton icon="back" tone="overlay" accessibilityLabel="Go back" onPress={goBack} />
+          <CartButton tone="overlay" />
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -171,6 +180,7 @@ const useStyles = makeStyles((t) => ({
   root: { flex: 1, backgroundColor: t.colors.background },
   centered: { flex: 1, justifyContent: 'center', padding: t.spacing.xl },
   backBar: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: t.spacing.lg, paddingTop: t.spacing.sm },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   scroll: { paddingBottom: t.spacing.huge },
   dots: { position: 'absolute', bottom: t.spacing.md, alignSelf: 'center', flexDirection: 'row', gap: 6 },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.55)' },

@@ -3,6 +3,7 @@ import type { ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, type IconName } from '@/components/common/icon';
+import { selectCartCount, useCartStore } from '@/store/cart/cart-store';
 import { useTheme } from '@/theme';
 
 function tabIcon(name: IconName) {
@@ -11,12 +12,9 @@ function tabIcon(name: IconName) {
   };
 }
 
-/**
- * Cart and Orders tabs are added in Phases 4 and 5, when their backend integrations exist.
- * They are deliberately absent instead of showing placeholder screens.
- */
 export default function TabLayout() {
   const { colors, shadows } = useTheme();
+  const cartCount = useCartStore(selectCartCount);
   const insets = useSafeAreaInsets();
   const bottom = Math.max(insets.bottom, 8);
 
@@ -40,6 +38,17 @@ export default function TabLayout() {
     >
       <Tabs.Screen name="home" options={{ title: 'Home', tabBarIcon: tabIcon('home') }} />
       <Tabs.Screen name="menu" options={{ title: 'Menu', tabBarIcon: tabIcon('menu') }} />
+      <Tabs.Screen
+        name="cart"
+        options={{
+          title: 'Cart',
+          tabBarIcon: tabIcon('bag'),
+          tabBarBadge: cartCount > 0 ? (cartCount > 99 ? '99+' : cartCount) : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.selected, color: colors.onSelected, fontSize: 11, fontWeight: '800' },
+          tabBarAccessibilityLabel: cartCount ? `Cart, ${cartCount} items` : 'Cart',
+        }}
+      />
+      <Tabs.Screen name="orders" options={{ title: 'Orders', tabBarIcon: tabIcon('orders') }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: tabIcon('profile') }} />
     </Tabs>
   );

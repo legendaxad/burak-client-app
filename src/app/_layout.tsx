@@ -34,6 +34,9 @@ function RootNavigator() {
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="products/[id]" />
+          <Stack.Screen name="checkout" />
+          <Stack.Screen name="orders/[id]" />
+          <Stack.Screen name="profile/edit" />
         </Stack.Protected>
         <Stack.Protected guard={!isAuthenticated}>
           <Stack.Screen name="(auth)" />

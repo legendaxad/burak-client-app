@@ -14,8 +14,11 @@ src/
     _layout.tsx                Providers + session gate (Stack.Protected) + root ErrorBoundary
     index.tsx                  Unguarded "/" entry: redirects to /home or /welcome by session status
     (auth)/                    Public: welcome, login, register
-    (tabs)/                    Protected: home, menu, profile
-    products/[id].tsx          Protected: product detail
+    (tabs)/                    Protected: home, menu, cart, orders, profile
+    products/[id].tsx          Protected: product detail (+ add to cart)
+    checkout.tsx               Protected: review + place order
+    orders/[id].tsx            Protected: order detail + workflow actions
+    profile/edit.tsx           Protected: edit profile + photo upload
 
   features/                    Each feature owns its API calls, hooks, screens and rules
     auth/
@@ -32,7 +35,26 @@ src/
       screens/                     MenuScreen, ProductDetailScreen
       utils/ types.ts query-keys.ts
     home/                      Home screen composed from products + auth hooks (no own API)
-    profile/                   Phase 2 scope: member summary + logout
+    cart/
+      utils/cart-logic.ts          Pure cart operations (merge, clamp to stock, sanitize)
+      utils/cart-lines.ts          Join with LIVE product data, summary, checkout validation, order payload
+      hooks/use-cart-lines.ts      useQueries over productDetailQuery per cart item
+      components/                  AddToCartPanel, CartButton, CartLineRow
+      screens/cart-screen.tsx
+    checkout/
+      hooks/use-place-order.ts     Re-fetch → validate → create order → clear ordered items (guarded)
+      screens/ utils/
+    orders/
+      services/order-api.ts        createOrder(), getMyOrders() (404 → empty), updateOrderStatus()
+      hooks/use-orders.ts          useOrderList (infinite, status filter), useOrder (cache-first scan)
+      hooks/use-order-action.ts    performOrderAction(): single-flight + fresh status check
+      utils/order-status.ts        Status labels + the customer workflow table
+      components/ screens/ types.ts query-keys.ts
+    profile/
+      services/profile-api.ts      updateProfile() (JSON, or multipart with memberImage), field whitelist
+      hooks/use-profile.ts         useUpdateProfile (progress, cache update), pickProfileImage()
+      utils/image-validation.ts    JPEG/PNG/WEBP, ≤ 5 MB
+      components/ screens/ validation/
 
   components/                  Feature-agnostic UI, theme-aware, no business logic
     common/   AppText, Icon, BrandMark, Skeleton, EmptyState/ErrorState/LoadingView, InlineAlert
@@ -45,6 +67,7 @@ src/
     query/    query-client.ts (TanStack Query defaults + retry policy)
     storage/  token-storage.ts (Expo SecureStore)
   store/auth/session-store.ts  Zustand: session status + token (client state only)
+  store/cart/cart-store.ts     Zustand + AsyncStorage persist: { ownerId, items: [{productId, quantity}] }
   providers/app-providers.tsx  Gesture root, SafeArea, Theme, QueryClient, AppState→focus
   theme/       tokens.ts (palette, spacing, radius, typography, sizes), themes.ts (light/dark), makeStyles
   config/env.ts                Validated EXPO_PUBLIC_API_URL
@@ -72,8 +95,8 @@ app/ (routes) ──▶ features/*/screens ──▶ features/*/hooks ──▶ 
 
 | Kind | Where | Examples |
 |---|---|---|
-| Server state | TanStack Query | `['member','me']`, `['products','list',filters]`, `['products','section',order,limit]`, `['products','detail',id]` |
-| Client state | Zustand (`store/`) | Session status and token |
+| Server state | TanStack Query | `['member','me']`, `['products','list',filters]`, `['products','section',order,limit]`, `['products','detail',id]`, `['orders','list',status]`, `['orders','detail',id]` |
+| Client state | Zustand (`store/`) | Session status and token; cart selections (persisted to AsyncStorage) |
 | Credentials | Expo SecureStore | JWT (`burak.session.accessToken`, `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`) |
 | Form state | React Hook Form + Zod | Login, Register |
 
@@ -101,14 +124,43 @@ Product data is never copied into Zustand.
 - **Detail:** shows cached list data instantly (`placeholderData`), then fetches `GET /product/:id`, which records the member's first view server-side.
 - **Home sections** use real sort orders only: "Most popular" (`productViews`) and "New on the menu" (`createdAt`). There are no fake banners, offers or featured flags.
 
-## 6. Theming and platform
+## 6. Cart, checkout, orders, profile (Phases 4–6)
+
+The backend is used **as-is (read-only)**. Where it trusts the client, the app adds its own safeguards; these are client-side only and are listed as backend limitations in BACKEND_API_MAPPING.md §8.
+
+**Cart**
+- Stores only `productId` and `quantity`. Prices, availability and stock always come from `GET /product/:id` (`productDetailQuery`, shared with the product screens).
+- Quantities are clamped to `[1, min(productLeftCount, 99)]`, and there's one line per product. Persisted data is sanitized on rehydrate.
+- `ownerId` binds the saved cart to a member. Logout empties it; signing in as a different member starts empty; an expired session keeps it for the same member.
+
+**Checkout** (`usePlaceOrder`)
+1. Re-fetches every product (`staleTime: 0`).
+2. Blocks on unavailable products, insufficient stock, or a price that changed since the customer reviewed it.
+3. Sends `[{ productId, itemQuantity, itemPrice }]` priced from that fresh data, because the backend trusts `itemPrice`.
+4. Removes the ordered items only after the server confirms.
+
+Repeated taps are ignored. A network failure during create shows "status unknown, check My orders" instead of retrying blindly, since the outcome can't be known. The delivery fee is shown as an estimate (it mirrors the backend rule); the confirmed total is the server's `orderTotal`.
+
+**Orders**
+- History uses `GET /order/all`, with an optional status filter and infinite scroll. The backend's 404 for an empty page becomes an empty list.
+- There's no single-order endpoint: detail shows cached data, then confirms by paging `/order/all`.
+- Customer actions follow the existing BURAK workflow: Confirm (PAUSE→PROCESS, the backend adds +1 point), Cancel (PAUSE→DELETED), Received (PROCESS→FINISH).
+- `/order/update` accepts any status and adds a point on *every* PROCESS. So `performOrderAction` allows one request per order at a time, and re-reads the status from the server before sending.
+
+**Profile**
+- Fields come from `GET /member/detail`.
+- Edits go to `POST /member/update`: JSON for text, multipart (`memberImage`) when a photo is included, with upload progress.
+- The service only ever sends `memberNick`, `memberPhone`, `memberAddress` and `memberDesc` (plus the file). The backend would otherwise accept `memberType`, `memberStatus` or `memberPoint`.
+- Images must be JPEG, PNG or WEBP and at most 5 MB, checked client-side because Multer has no filter.
+
+## 7. Theming and platform
 
 - `ThemeProvider` follows the OS scheme (`app.json` → `userInterfaceStyle: automatic`). Components get styles from `makeStyles((theme) => …)` and never hard-code colors. The light theme keeps the BURAK ink / cream / gold identity; the dark theme mirrors it.
 - `Screen` applies safe-area edges, an optional `KeyboardAvoidingView` (`padding` on iOS, `height` on Android) and a 760 pt max content width for tablets.
 - Touch targets are ≥ 44 pt. Icons use SF Symbols on iOS and Material Symbols on Android. Skeletons respect "reduce motion".
 - Release builds block plain `http://` on both platforms, so production needs an HTTPS `EXPO_PUBLIC_API_URL`.
 
-## 7. Configuration
+## 8. Configuration
 
 | Variable | Purpose |
 |---|---|
@@ -116,15 +168,15 @@ Product data is never copied into Zustand.
 
 Price display is configured in one place (`utils/format-price.ts`, KRW `₩`, pending product-owner confirmation).
 
-## 8. Testing
+## 9. Testing
 
 | Command | Scope |
 |---|---|
 | `npm test` | Unit tests (Jest + jest-expo + Testing Library): utils, API client and interceptors, retry policy, session service (persistence, restart, expiry, dedupe), auth API and validation, product service, image fallback |
-| `EXPO_PUBLIC_API_URL=http://localhost:3003 npm run test:integration` | Runs the app's real services against a live backend: signup, login, Bearer auth, restart, logout, expiry, products, filters, search, pagination, detail views. Creates one `qa_mobile_*` member per run |
+| `EXPO_PUBLIC_API_URL=http://localhost:3003 npm run test:integration` | Runs the app's real services against a live backend: auth, products, checkout/order creation, order history and workflow (points, duplicates, member isolation), profile edit and photo upload, cache isolation. Creates `qa_*` test members (and their orders) per run |
 | `npm run typecheck`, `npm run lint` | `tsc --noEmit`, `expo lint` |
 
-## 9. Adding a feature (Phase 4+)
+## 10. Adding a feature
 
 1. Add the endpoint to `services/api/endpoints.ts`, but only if the backend implements it.
 2. Create `features/<name>/{types.ts, services/, query-keys.ts, hooks/, components/, screens/}`.

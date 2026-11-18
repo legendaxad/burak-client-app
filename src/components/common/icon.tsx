@@ -31,6 +31,17 @@ const iconNames = {
   dessert: { ios: 'birthday.cake', android: 'cake', web: 'cake' },
   drink: { ios: 'cup.and.saucer', android: 'local_cafe', web: 'local_cafe' },
   other: { ios: 'square.grid.2x2', android: 'apps', web: 'apps' },
+  plus: { ios: 'plus', android: 'add', web: 'add' },
+  minus: { ios: 'minus', android: 'remove', web: 'remove' },
+  trash: { ios: 'trash', android: 'delete_outline', web: 'delete_outline' },
+  edit: { ios: 'pencil', android: 'edit', web: 'edit' },
+  camera: { ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' },
+  calendar: { ios: 'calendar', android: 'calendar_today', web: 'calendar_today' },
+  receipt: { ios: 'receipt', android: 'receipt_long', web: 'receipt_long' },
+  clock: { ios: 'clock', android: 'schedule', web: 'schedule' },
+  cancel: { ios: 'xmark.circle', android: 'cancel', web: 'cancel' },
+  checkCircle: { ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' },
+  note: { ios: 'text.alignleft', android: 'notes', web: 'notes' },
 } as const;
 
 export type IconName = keyof typeof iconNames;

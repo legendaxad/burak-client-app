@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 
 import { queryClient } from '@/services/query/query-client';
 import { useSessionStore } from '@/store/auth/session-store';
+import { useCartStore } from '@/store/cart/cart-store';
 import { expiredTestToken, validTestToken } from '@/test-utils/jwt';
 import type { Member } from '@/types/member';
 
@@ -125,6 +126,34 @@ describe('endSession', () => {
     useSessionStore.setState({ status: 'anonymous' });
     await endSession('expired');
     expect(SecureStore.deleteItemAsync).not.toHaveBeenCalled();
+  });
+});
+
+describe('cart isolation between accounts', () => {
+  beforeEach(() => useCartStore.setState({ ownerId: null, items: [] }));
+
+  it('empties the cart on explicit logout (shared devices)', async () => {
+    (authApi.logout as jest.Mock).mockResolvedValue(undefined);
+    await beginSession(validTestToken(), member);
+    useCartStore.getState().add('p1', 2);
+    await signOut();
+    expect(useCartStore.getState().items).toEqual([]);
+  });
+
+  it('keeps the cart when the session merely expires, for the same member', async () => {
+    await beginSession(validTestToken(), member);
+    useCartStore.getState().add('p1', 2);
+    await endSession('expired');
+    await beginSession(validTestToken(), member);
+    expect(useCartStore.getState().items).toEqual([{ productId: 'p1', quantity: 2 }]);
+  });
+
+  it('never shows one member’s cart to another member', async () => {
+    await beginSession(validTestToken(), member);
+    useCartStore.getState().add('p1', 2);
+    await endSession('expired');
+    await beginSession(validTestToken(), { ...member, _id: 'another-member-id', memberNick: 'other' });
+    expect(useCartStore.getState().items).toEqual([]);
   });
 });
 

@@ -38,7 +38,7 @@ export function TextField({ label, error, hint, password = false, ref, onFocus, 
           secureTextEntry={password && !revealed}
           autoCapitalize={password ? 'none' : inputProps.autoCapitalize}
           autoCorrect={password ? false : inputProps.autoCorrect}
-          style={styles.input}
+          style={[styles.input, inputProps.multiline && styles.multiline]}
           onFocus={(event) => {
             setFocused(true);
             onFocus?.(event);
@@ -89,5 +89,6 @@ const useStyles = makeStyles((t) => ({
   fieldFocused: { borderColor: t.colors.primaryStrong },
   fieldError: { borderColor: t.colors.danger },
   input: { flex: 1, color: t.colors.text, fontSize: 15, paddingVertical: t.spacing.md },
+  multiline: { minHeight: 96, maxHeight: 180, textAlignVertical: 'top' },
   toggle: { paddingLeft: t.spacing.sm, height: t.sizes.touchTarget, justifyContent: 'center' },
 }));
